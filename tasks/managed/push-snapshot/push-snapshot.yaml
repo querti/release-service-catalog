@@ -138,7 +138,7 @@ spec:
         - name: sourceDataArtifact
           value: $(params.sourceDataArtifact)
     - name: push-snapshot
-      image: quay.io/konflux-ci/release-service-utils:ea7868ebdcc7a2116c620255034226611d837f42
+      image: quay.io/yftacherzog/release-service-utils:parse-helm
       computeResources:
         limits:
           memory: 1Gi
