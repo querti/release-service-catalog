@@ -344,6 +344,33 @@ spec:
         componentGroup=$(jq -r '.componentGroup' "${SNAPSHOT_SPEC_FILE}")
         NUM_COMPONENTS=$(jq '.components | length' "${SNAPSHOT_SPEC_FILE}")
         printf 'Beginning "%s" for "%s"\n\n' "$(context.task.name)" "$componentGroup"
+
+        # --- Network diagnostics (temporary) ---
+        echo "=== NETWORK DIAGNOSTICS ==="
+        DIAG_HOST=$(jq -r '.components[0].repositories[0].url // ""' \
+          "${SNAPSHOT_SPEC_FILE}" | cut -d'/' -f1)
+        echo "Target registry host: ${DIAG_HOST}"
+
+        echo "--- /etc/resolv.conf ---"
+        cat /etc/resolv.conf || true
+
+        echo "--- DNS resolution attempts ---"
+        echo "getent hosts ${DIAG_HOST}:"
+        getent hosts "${DIAG_HOST}" 2>&1 || true
+        echo "nslookup ${DIAG_HOST}:"
+        nslookup "${DIAG_HOST}" 2>&1 || true
+        echo "dig ${DIAG_HOST}:"
+        dig "${DIAG_HOST}" +short 2>&1 || true
+        echo "python3 socket.getaddrinfo ${DIAG_HOST}:"
+        python3 -c "import socket; print(socket.getaddrinfo('${DIAG_HOST}', 443))" 2>&1 || true
+
+        echo "--- Connectivity test ---"
+        curl -svk --connect-timeout 5 "https://${DIAG_HOST}/v2/" 2>&1 || true
+
+        echo "--- Network info ---"
+        ip route show default 2>&1 || true
+        echo "=== END NETWORK DIAGNOSTICS ==="
+
         for ((i = 0; i < NUM_COMPONENTS; i++))
         do
           component=$(jq -c --argjson i "$i" '.components[$i]' "${SNAPSHOT_SPEC_FILE}")
