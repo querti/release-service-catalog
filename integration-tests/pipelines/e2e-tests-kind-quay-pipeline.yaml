@@ -159,8 +159,6 @@ spec:
           value: kfg-$(context.pipelineRun.name)
         - name: repo-url
           value: https://github.com/konflux-ci/konflux-ci.git
-        - name: repo-branch
-          value: main
         - name: component-name
           value: release-service-catalog
         - name: component-pr-owner
